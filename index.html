@@ -1,75 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arena Simplificada</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 20px;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-        }
-        .button-refresh {
-            margin: 10px 0;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>9CMD Arena - HEIMDALL</title>
+  <link rel="shortcut icon" href="../assets/favicon.png" />
+  <script src="../js/lazysizes.min.js" async=""></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="../js/script_arena.js"></script>
+  <script src="../js/heimdall/const.js"></script>
+  <script src="../js/script_attack.js"></script>
+  <link rel="stylesheet" type="text/css" href="../css/style.css" />
+  <script src="https://cdn.counter.dev/script.js" data-id="7dc1b1a6-10c4-4a31-8fb1-817ef271b3f8"
+    data-utcoffset="7"></script>
+
+  <style>
+    tr.sticky {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0px;
+      z-index: 999;
+      background-image: url('../assets/cover.png');
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    tr.range1 {
+      background-color: #85ff8a;
+      border: 1px solid black;
+    }
+
+    tr.row_pick {
+      background-color: #e4f5d4;
+      border: 1px solid black;
+    }
+
+    tr.range2 {
+      background-color: #ffa19a;
+      border: 1px solid black;
+    }
+
+    td.pickAndEquip {
+      background-color: #ffffff00;
+      background-image: linear-gradient(to right, #ffeb3bb0, #9c27b085);
+      border: 1px solid black;
+    }
+  </style>
 </head>
+
 <body>
+  <div class="tooltip">
+    <button id="backToTopBtn" onclick="scrollToTop()"><span class="tooltiptext">Voltar ao topo</span></button>
+  </div>
+  <section>
+    <h1><a href="../"><img src="../assets/ArenaSimulatorTitle.png" alt="ArenaSimulatorTitle" style="width: 55vw;" /></a></h1>
 
-    <h1>Arena Simplificada</h1>
-    <button class="button-refresh" onclick="fetchData()">Atualizar Dados</button>
+    <div style="font-weight: bold; padding: 10px; display: flex; flex-wrap: wrap; justify-content: center;">
+      <!-- Botões e informações com tooltips -->
+      <div class="tooltip">
+        <a href="https://t.me/viNineChronicles/629" target="_blank"><img src="../assets/telegram.png" alt="telegram"
+            style="width: 30px;" /></a><span class="tooltiptext">Junte-se ao grupo no Telegram para notificações</span>
+      </div>
+    </div>
 
-    <table id="dataTable" class="display">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Telefone</th>
+    <div style="display: flex; justify-content: space-around;">
+      <div style="width: 60vh; position: sticky; top: 0;">
+        <table id="infoTable">
+          <tr id="selectedItemsRow">
+            <!-- Entrada de dados para configuração -->
+            <td colspan="10">
+              <label for="numberInput">Número:</label>
+              <input type="number" id="numberInput" value="1" min="0" />
+              <label for="setTimeout">Timeout (s):</label>
+              <input type="number" id="setTimeout" value="30" min="0" />
+              <br>
+              <label for="setRankDisplay">Leaderboard:</label>
+              <input type="number" id="setRankDisplay" value="500" min="0" />
+              <br>
+              <input class="range-style" type="range" id="rangeInput" min="0" max="200" step="50" value="0" />
+              <input class="range-style" type="range" id="rangeInput2" min="0" max="200" step="50" value="0" />
+              <br>
+              <input type="number" id="timeAutoResetTable" value="300" min="60" />
+              <button id="resetButton" onclick="$('#suggestList').empty();refreshTableDataAgain(false)"
+                class="button-37">Auto reset data <b>HEIMDALL</b> após <span></span>s</button>
+              <input list="suggestList" type="text" id="searchItem" onkeyup="searchItemFun()"
+                placeholder="Buscar nomes..." /><button class="button-37"
+                onclick='$("#searchItem").val("");searchItemFun();'>Limpar</button>
+              <button onclick="$('#suggestList').empty();refreshTableDataAgain(true)" class="button-37">Mostrar pré-rodada</button>
+              <datalist id="suggestList"></datalist>
+            </td>
+          </tr>
+
+          <tr class="infoYou">
+            <td>-</td>
+            <td><img src="../assets/loading_small.gif" /></td>
+            <td colspan="10">-</td>
+          </tr>
+        </table>
+
+        <div class="commentbox" style="height: 225px; width: 100%; overflow: auto;"></div>
+        <script src="https://unpkg.com/commentbox.io/dist/commentBox.min.js"></script>
+        <script>
+          commentBox('5678010745225216-proj');
+        </script>
+      </div>
+
+      <div class="table-container" style="width: 60%;">
+        <table id="myTable">
+          <tbody>
+            <tr class="sticky">
+              <th class='clickMeCSS'>Rank</th>
+              <th>Avatar</th>
+              <th class='clickMeCSS'>Nome</th>
+              <th class='clickMeCSS'>CP</th>
+              <th class='clickMeCSS'>Pontuação</th>
+              <th class='clickMeCSS'>Stake</th>
+              <th class='clickMeCSS'>Vitórias/Derrotas</th>
+              <th class='clickMeCSS'>Tickets</th>
+              <th>Você</th>
+              <th class='clickMeCSS'>VS</th>
+              <th>Inimigo</th>
             </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+            <tr>
+              <td>-</td>
+              <td><img src="../assets/loading_small.gif" /></td>
+              <td>-------------------------</td>
+              <td>--------</td>
+              <td>-----</td>
+              <td>-</td>
+              <td>---/---</td>
+              <td>------</td>
+              <td>-</td>
+              <td>---</td>
+              <td>-</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Inicializa a tabela DataTables
-            $('#dataTable').DataTable();
-            // Carrega os dados ao iniciar
-            fetchData();
-        });
+    <script type="text/javascript">
+      // Função para comparação de colunas
+      const { compare } = new Intl.Collator(undefined, { numeric: true });
 
-        // Função para buscar dados da API
-        async function fetchData() {
-            const apiUrl = 'https://jsonplaceholder.typicode.com/users';
-            try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
-                populateTable(data);
-            } catch (error) {
-                console.error('Erro ao buscar dados:', error);
-            }
+      // Ordenação ao clicar no cabeçalho da tabela
+      $("th", "#myTable").click(function () {
+        sortColumn($(this).index());
+      });
+
+      var btn = $("#backToTopBtn");
+
+      // Mostra o botão de voltar ao topo ao rolar a página
+      $(window).scroll(function () {
+        if ($(window).scrollTop() > 20) {
+          btn.addClass("show");
+        } else {
+          btn.removeClass("show");
         }
+      });
 
-        // Função para preencher a tabela com os dados da API
-        function populateTable(data) {
-            const table = $('#dataTable').DataTable();
-            table.clear(); // Limpa a tabela
-
-            data.forEach(item => {
+      // Carrega os dados ao iniciar
+      $(document).ready(function () {
+        refreshTableData();
+        refreshInfoTableData();
+      });
+    </script>
+  </section>
+</body>
 
 </html>
+
